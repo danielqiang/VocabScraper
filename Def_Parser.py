@@ -147,8 +147,8 @@ def make_doc(docname, definitions, not_found, *args):
 
 def main():
     """
-    Read a Word document containing terms without definitions.
-    Google the terms, then create a new Word document with terms and definitions.
+    Reads a Word document containing terms without definitions.
+    Googles the terms, then creates a new Word document with terms and definitions.
     """
     # Grab a list of terms from Word Doc (Econ Vocab List).
     terms = read_doc("Chapter 12 Aggreagate demand and aggregate supply vocabulary.docx",
