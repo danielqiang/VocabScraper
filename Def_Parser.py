@@ -13,8 +13,8 @@ import time
 
 
 # Key and ID for Google's customsearch API.
-Key = "AIzaSyBLyswP6EvROXHsDo4O_BIQwrEx-Gp5GW4"
-ID = "010141786122130001585:gob4xioziac"
+Key = ""
+ID = ""
 
 
 def google_search(query, api_key=Key, cse_id=ID, **kwargs):
