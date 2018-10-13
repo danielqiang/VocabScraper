@@ -1,5 +1,5 @@
 # VocabScraper
-VocabScraper is a script that automatically completes vocabulary homework. It reads a Word document containing vocabulary terms, googles their definitions, then writes them to a new Word document using MLA formatting. 
+VocabScraper is a script that automatically completes vocabulary homework. It reads a Word document containing vocabulary terms, googles their definitions, then writes them to a new Word document in MLA format. 
 
 ## Usage
 To use the script as is, you will need a Google Custom Search API Key and CSE ID, which you can get [here](https://cse.google.com/create/new). 
