@@ -1,5 +1,5 @@
-# Vocab-Webscraper
-Vocab-Webscraper is a script that automatically completes vocabulary homework. It reads a Word document containing vocabulary terms, googles their definitions, then writes them to a new Word document using MLA formatting. 
+# VocabScraper
+VocabScraper is a script that automatically completes vocabulary homework. It reads a Word document containing vocabulary terms, googles their definitions, then writes them to a new Word document using MLA formatting. 
 
 ## Usage
 To use the script as is, you will need a Google Custom Search API Key and CSE ID, which you can get [here](https://cse.google.com/create/new). 
@@ -20,7 +20,7 @@ Output files:
 * [Completed Vocabulary List 3](https://www.dropbox.com/s/lga1lv66kx9cn5x/Chapter-22-Vocabulary.pdf?dl=0)
 
 ## Awards
-Vocab-Webscraper won the Best Application award at T-Mobile's [CodeDay](https://www.codeday.org/) (Eastside Seattle).
+VocabScraper won the Best Application award at T-Mobile's [CodeDay](https://www.codeday.org/) (Eastside Seattle).
 
 
 
