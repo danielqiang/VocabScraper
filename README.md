@@ -6,7 +6,7 @@ To use the script as is, you will need a Google Custom Search API Key and CSE ID
 
 Once you have an API Key and CSE ID, just enter them into main.py and run the script.
 
-## The Bot in Action
+## VocabScraper in Action
 Here are some examples of the script running on my IB Economics vocabulary homework.
 
 Input files:
