@@ -39,26 +39,34 @@ def scrape(terms, api_key, cse_id):
     :param cse_id: Google CSE ID, passed as string.
     :rtype: dict
     """
-
-    # Clean up terms for Google Search. Remove all parentheses and text between parentheses then map the
-    # old terms to the new ones.
+    # Clean up terms for Google Search. Removes all parentheses and text between parentheses.
     clean_terms = [re.sub(r'\([^)]*\)', '', term) for term in terms]
     not_found = []
     definitions = {}
     for i, clean_term in enumerate(clean_terms):
         print("Googling " + clean_term + "...")
-        # Try Investopedia.
-        results = google_search(clean_term + " definition economics investopedia", api_key, cse_id, num=1)
-        if 'investopedia' in results['formattedUrl'] and \
-                'twitter:description' in results['pagemap']['metatags'][0]['twitter:description']:
-            definitions[terms[i]] = results['pagemap']['metatags'][0]['twitter:description']
-        # Now try Wikipedia.
-        else:
-            results = google_search(clean_term + " definition economics wikipedia", api_key, cse_id, num=1)
-            # Google shortens their website descriptions with ellipses if they are too long.
-            # Wikipedia's descriptions are almost always shortened, so we visit Wikipedia
-            # and grab the rest of the text snippet directly from the site html.
-            definitions[terms[i]] = parse(results['formattedUrl'], results['snippet'])
+        term = terms[i]
+        try:
+            # Try Investopedia.
+            results = google_search(clean_term + " definition economics investopedia",
+                                    num=1, api_key=api_key, cse_id=cse_id)
+            if 'investopedia' in results['formattedUrl']:
+                definitions[term] = results['pagemap']['metatags'][0]['twitter:description']
+                continue
+            # Now try Wikipedia.
+            results = google_search(clean_term + " definition economics wikipedia",
+                                    num=1, api_key=api_key, cse_id=cse_id)
+            if 'wikipedia' in results['formattedUrl']:
+                # Google shortens their website descriptions with ellipses if they are too long.
+                # Wikipedia's descriptions are almost always shortened, so we visit Wikipedia
+                # and grab the rest of the text snippet directly from the site html.
+                definitions[term] = parse(results['formattedUrl'], results['snippet'])
+                print(definitions[term])
+                continue
+        except Exception as e:
+            print(e)
+            not_found.append(term)
+
     return definitions, not_found
 
 
@@ -74,12 +82,12 @@ def parse(term_url, snippet):
 
     # Remove ellipses from snippet.
     clean_snippet = re.sub("[...]", "", snippet)
-    # Create a fake user agent to bypass bot detection.
+    # Create a fake user agent to bypass PollEvBot detection.
     url_headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                    '(KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'}
     # Grab and parse website HTML with BeautifulSoup.
-    r = urllib.request.Request(term_url, headers=url_headers)
-    soup = bs.BeautifulSoup(urllib.request.urlopen(r), "lxml")
+    r = urllib.request.urlopen(urllib.request.Request(term_url, headers=url_headers))
+    soup = bs.BeautifulSoup(r, "lxml")
     for paragraph in soup.body.find_all('p'):
         # If the snippet is part of the paragraph, return the whole paragraph.
         if clean_snippet in paragraph.text:
@@ -88,21 +96,20 @@ def parse(term_url, snippet):
 
 def read_doc(filepath):
     """
-    Parses a Word file containing vocabulary terms and returns a list of terms..
+    Finds and reads a docx file containing search terms.
 
     :param filepath: Path for docx file containing search terms.
+    :return: List of terms within document.
     """
-    # Two lists - Chars allowed in terms and words not allowed in terms
     allowed_chars = s.ascii_letters + s.digits + '-() '
     not_allowed_words = ["Vocab", "Chapter"]
-
     text = docx2txt.process(filepath)
-    # Split text with newlines as delimiters.
+    # Read the text, with newlines as delimiters.
     text = list(filter(None, text.split('\n')))
-
     terms = []
     for string in text:
-        # If every char in string is allowed and string contains no not-allowed words, append to terms
+        # If every character is allowed and the string doesn't contain the words "Vocab" or "Chapter",
+        # it's probably a vocabulary term
         if all(char in allowed_chars for char in string) and not any(word in string for word in not_allowed_words):
             terms.append(string)
     return terms
@@ -129,22 +136,22 @@ def add_par(docname, text, font='Times New Roman', font_size=12, bold_text=False
     paragraph.underline = underline_text
 
 
-def add_mla_header(doc, **kwargs):
+def add_mla_header(doc, *args):
     """
-    Adds an MLA header to a docx document. Helper function for makedoc().
+    Adds an MLA header to a docx document.
 
     :param doc: Docx document object.
     :param args: Parts for MLA header.
     """
-    for kwarg in kwargs:
-        add_par(doc, kwarg)
+    for arg in args:
+        add_par(doc, arg)
     # Add an empty line after writing MLA header.
     add_par(doc, "")
 
 
-def make_doc(docname, filepath, definitions, not_found, **kwargs):
+def make_doc(docname, filepath, definitions, not_found, *args):
     """
-    Creates a Word document with economics terms and their definitions.
+    Creates a Word document with an MLA header, terms, definitions, and words we didn't find.
 
     :param docname: Name of document.
     :param filepath: Path (location) to save document.
@@ -156,7 +163,8 @@ def make_doc(docname, filepath, definitions, not_found, **kwargs):
     os.chdir(filepath)
     doc = Document()
     # My preferred MLA formatting. Can be modified as needed.
-    add_mla_header(doc, **kwargs)
+    print(*args)
+    add_mla_header(doc, *args)
     add_par(doc, "Vocabulary List:", bold_text=True)
     # Write terms and definitions.
     for i, term in enumerate(definitions.keys()):
@@ -170,13 +178,14 @@ def make_doc(docname, filepath, definitions, not_found, **kwargs):
     doc.save(docname)
 
 
-def main(makefile, **kwargs):
+def main(makefile, *args):
     """
-    Runs the script.
+    Reads a Word document containing terms without definitions.
+    Googles the terms, then creates a new Word document with terms and definitions.
     """
     # Key and ID for Google's customsearch API.
-    key = ""
-    cse_id = ""
+    Key = ""
+    ID = ""
     # Opens an instance of tkinter for user file selection.
     tkinter.Tk().withdraw()  # Close the root window
     vocab_fpath = askopenfilename()
@@ -185,11 +194,13 @@ def main(makefile, **kwargs):
         exit("No input file selected.")
     print("File received.")
     terms = read_doc(vocab_fpath)
-    definitions, not_found = scrape(terms, api_key=key, cse_id=cse_id)
-    make_doc(makefile, os.path.dirname(vocab_fpath), definitions, not_found, **kwargs)
+    definitions, not_found = scrape(terms, api_key=Key, cse_id=ID)
+    make_doc(makefile, os.path.dirname(vocab_fpath), definitions, not_found, *args)
     os.startfile(makefile)
 
 
 if __name__ == '__main__':
-    main("Chapter 1 Vocabulary.docx", name="Daniel Qiang", date="2/4/18",
-         period="Sherman Per. 6", subject="Macroeconomic Objectives")
+    main("Chapter 17 Vocabulary.docx", "Daniel Qiang", "2/4/18", "Sherman Per. 6", "Macroeconomic Objectives")
+
+
+
