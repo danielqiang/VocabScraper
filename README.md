@@ -20,7 +20,7 @@ Output files:
 * [Completed Vocabulary List 3](https://www.dropbox.com/s/lga1lv66kx9cn5x/Chapter-22-Vocabulary.pdf?dl=0)
 
 ## Awards
-Won Best Application award at [T-Mobile's CodeDay](https://www.codeday.org/) (Eastside Seattle).
+Won Best Application award at [T-Mobile CodeDay](https://www.codeday.org/) (Eastside Seattle).
 
 
 
